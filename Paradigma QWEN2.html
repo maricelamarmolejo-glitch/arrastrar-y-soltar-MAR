@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Paradigmas de la Docencia — Actividad Interactiva</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(135deg, #0a2540 0%, #1e3a8a 50%, #3b82f6 100%);
+    min-height: 100vh;
+    padding: 20px;
+    color: #1e293b;
+  }
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    background: #f0f7ff;
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+  h1 {
+    text-align: center;
+    color: #1e3a8a;
+    margin-bottom: 8px;
+    font-size: 1.9em;
+  }
+  .subtitle {
+    text-align: center;
+    color: #475569;
+    margin-bottom: 20px;
+    font-size: 0.95em;
+  }
+  .stats {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .stat-box {
+    background: #fff;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-weight: bold;
+    font-size: 0.9em;
+    border: 2px solid #3b82f6;
+    color: #1e3a8a;
+    box-shadow: 0 2px 6px rgba(59,130,246,0.2);
+  }
+  .stat-box.correct { color: #047857; border-color: #047857; }
+  .stat-box.wrong { color: #b91c1c; border-color: #b91c1c; }
+  .stat-box.total { color: #1e3a8a; border-color: #1e3a8a; }
+
+  .bank {
+    background: #dbeafe;
+    border: 3px dashed #3b82f6;
+    border-radius: 15px;
+    padding: 18px;
+    margin-bottom: 25px;
+    min-height: 140px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+  }
+  .bank-title {
+    width: 100%;
+    text-align: center;
+    color: #1e3a8a;
+    font-size: 0.95em;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+  .element {
+    background: linear-gradient(135deg, #fff 0%, #e0ecff 100%);
+    border: 2px solid #3b82f6;
+    border-radius: 10px;
+    padding: 10px 14px;
+    cursor: grab;
+    font-size: 0.85em;
+    max-width: 260px;
+    text-align: center;
+    user-select: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 6px rgba(30,58,138,0.15);
+    color: #1e3a8a;
+  }
+  .element:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(30,58,138,0.3);
+    background: linear-gradient(135deg, #eff6ff 0%, #bfdbfe 100%);
+  }
+  .element.dragging { opacity: 0.4; }
+
+  .paradigms {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 15px;
+  }
+  .paradigm {
+    border-radius: 12px;
+    padding: 15px;
+    min-height: 200px;
+    transition: all 0.3s;
+    border: 3px solid transparent;
+  }
+  .paradigm h3 {
+    text-align: center;
+    margin-bottom: 10px;
+    font-size: 1.05em;
+    color: #fff;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+  }
+  .paradigm .drop-zone {
+    background: rgba(255,255,255,0.9);
+    border-radius: 8px;
+    min-height: 110px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: background 0.2s;
+  }
+  .paradigm .drop-zone.drag-over {
+    background: rgba(255,255,255,1);
+    box-shadow: inset 0 0 0 3px #60a5fa;
+  }
+  .paradigm .placed-item {
+    background: #ecfdf5;
+    border-left: 4px solid #047857;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.82em;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    color: #065f46;
+  }
+
+  /* Tonos azules por paradigma */
+  .p-tradicional { background: linear-gradient(135deg,#1e3a8a,#1e40af); }
+  .p-conductivista { background: linear-gradient(135deg,#1d4ed8,#2563eb); }
+  .p-cognitivista { background: linear-gradient(135deg,#0369a1,#0284c7); }
+  .p-constructivista { background: linear-gradient(135deg,#0e7490,#0891b2); }
+  .p-humanista { background: linear-gradient(135deg,#4338ca,#6366f1); }
+  .p-nuemex { background: linear-gradient(135deg,#1e3a8a,#3b82f6); }
+
+  /* Feedback */
+  .feedback {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    background: #fff;
+    padding: 25px 30px;
+    border-radius: 15px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    max-width: 480px;
+    z-index: 1000;
+    transition: transform 0.3s;
+    text-align: center;
+    border-top: 8px solid #3b82f6;
+  }
+  .feedback.show { transform: translate(-50%, -50%) scale(1); }
+  .feedback.success { border-top-color: #047857; }
+  .feedback.error { border-top-color: #b91c1c; }
+  .feedback h2 { margin-bottom: 10px; font-size: 1.3em; color: #1e3a8a; }
+  .feedback p { color: #475569; line-height: 1.5; margin-bottom: 15px; font-size: 0.95em; }
+  .feedback button {
+    background: #1e3a8a;
+    color: #fff;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 0.95em;
+    font-weight: bold;
+  }
+  .feedback button:hover { background: #1e40af; }
+
+  .final-panel {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(10,37,64,0.85);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    overflow-y: auto;
+    padding: 20px;
+  }
+  .final-panel.show { display: flex; }
+  .final-content {
+    background: #fff;
+    padding: 35px;
+    border-radius: 20px;
+    max-width: 600px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .final-content h2 {
+    color: #1e3a8a;
+    margin-bottom: 15px;
+    font-size: 1.8em;
+  }
+  .score-circle {
+    width: 150px; height: 150px;
+    border-radius: 50%;
+    background: conic-gradient(#2563eb var(--p), #dbeafe 0);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px auto;
+    position: relative;
+  }
+  .score-circle::before {
+    content: '';
+    width: 120px; height: 120px;
+    background: #fff;
+    border-radius: 50%;
+    position: absolute;
+  }
+  .score-value {
+    position: relative;
+    font-size: 2em;
+    font-weight: bold;
+    color: #1e3a8a;
+  }
+  .final-content p {
+    color: #475569;
+    line-height: 1.6;
+    margin-bottom: 10px;
+  }
+  .readings {
+    text-align: left;
+    background: #eff6ff;
+    border-left: 5px solid #2563eb;
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+  }
+  .readings h3 {
+    color: #1e3a8a;
+    margin-bottom: 10px;
+    font-size: 1.05em;
+    text-align: left;
+  }
+  .readings ul { list-style: none; padding: 0; }
+  .readings li {
+    background: #fff;
+    margin: 6px 0;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.88em;
+    color: #1e3a8a;
+    border-left: 3px solid #3b82f6;
+  }
+  .readings li strong { color: #1e40af; }
+  .final-content button {
+    background: #1e3a8a;
+    color: #fff;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    margin: 5px;
+  }
+  .final-content button:hover { background: #1e40af; }
+  .controls {
+    text-align: center;
+    margin-top: 20px;
+  }
+  .controls button {
+    background: #1e3a8a;
+    color: #fff;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: bold;
+    margin: 0 5px;
+  }
+  .controls button:hover { background: #1e40af; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>📘 Paradigmas de la Docencia</h1>
+  <p class="subtitle">Arrastra cada característica al paradigma educativo que le corresponde</p>
+
+  <div class="stats">
+    <div class="stat-box correct">✓ Aciertos: <span id="correctCount">0</span></div>
+    <div class="stat-box wrong">✗ Errores: <span id="wrongCount">0</span></div>
+    <div class="stat-box total">📊 Progreso: <span id="progress">0</span>/30</div>
+  </div>
+
+  <div class="bank" id="bank">
+    <div class="bank-title">📦 Banco de características (desordenadas) — arrastra cada una a su paradigma</div>
+  </div>
+
+  <div class="paradigms" id="paradigms">
+    <div class="paradigm p-tradicional" data-paradigm="tradicional">
+      <h3>📜 Tradicional</h3>
+      <div class="drop-zone" data-paradigm="tradicional"></div>
+    </div>
+    <div class="paradigm p-conductivista" data-paradigm="conductivista">
+      <h3>⚙️ Conductivista</h3>
+      <div class="drop-zone" data-paradigm="conductivista"></div>
+    </div>
+    <div class="paradigm p-cognitivista" data-paradigm="cognitivista">
+      <h3>🧠 Cognitivista</h3>
+      <div class="drop-zone" data-paradigm="cognitivista"></div>
+    </div>
+    <div class="paradigm p-constructivista" data-paradigm="constructivista">
+      <h3>🏗️ Constructivista</h3>
+      <div class="drop-zone" data-paradigm="constructivista"></div>
+    </div>
+    <div class="paradigm p-humanista" data-paradigm="humanista">
+      <h3>💙 Humanista</h3>
+      <div class="drop-zone" data-paradigm="humanista"></div>
+    </div>
+    <div class="paradigm p-nuemex" data-paradigm="nuemex">
+      <h3>🇲🇽 Nueva Escuela Mexicana</h3>
+      <div class="drop-zone" data-paradigm="nuemex"></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button onclick="resetGame()">🔄 Reiniciar actividad</button>
+    <button onclick="showFinal()">📈 Ver resultado final</button>
+  </div>
+</div>
+
+<div class="feedback" id="feedback">
+  <h2 id="feedbackTitle"></h2>
+  <p id="feedbackText"></p>
+  <button onclick="closeFeedback()">Continuar</button>
+</div>
+
+<div class="final-panel" id="finalPanel">
+  <div class="final-content">
+    <h2>🏆 Resultado Final</h2>
+    <div class="score-circle" id="scoreCircle" style="--p: 0%">
+      <span class="score-value" id="scoreValue">0%</span>
+    </div>
+    <p id="finalMessage"></p>
+    <div id="readingsBox"></div>
+    <button onclick="closeFinal()">Cerrar</button>
+    <button onclick="resetGame(); closeFinal();">Reintentar</button>
+  </div>
+</div>
+
+<script>
+const elements = [
+  // TRADICIONAL (5)
+  { id: 't1', text: 'El docente es el centro y única fuente del saber', paradigm: 'tradicional',
+    explain: 'En el modelo tradicional el maestro es el transmisor central del conocimiento.',
+    hint: 'Piensa en un modelo donde el profesor habla y los alumnos escuchan en silencio.' },
+  { id: 't2', text: 'Evaluación memorística y repetitiva', paradigm: 'tradicional',
+    explain: 'Se privilegia la reproducción literal de contenidos aprendidos de memoria.',
+    hint: 'Aquí lo importante es recordar datos tal cual los dio el maestro.' },
+  { id: 't3', text: 'El alumno es receptor pasivo', paradigm: 'tradicional',
+    explain: 'El estudiante solo recibe información sin construir ni cuestionar.',
+    hint: 'En este paradigma el estudiante no participa activamente.' },
+  { id: 't4', text: 'Autoridad indiscutible del maestro', paradigm: 'tradicional',
+    explain: 'El docente ejerce control total del aula y del proceso.',
+    hint: 'El maestro decide todo: contenidos, tiempos y evaluaciones.' },
+  { id: 't5', text: 'Clase magistral expositiva', paradigm: 'tradicional',
+    explain: 'La principal estrategia didáctica es la exposición verbal del docente.',
+    hint: 'Una sola voz predomina en el aula: la del profesor.' },
+
+  // CONDUCTIVISTA (5)
+  { id: 'c1', text: 'Uso de refuerzos positivos y negativos', paradigm: 'conductivista',
+    explain: 'El conductismo modifica la conducta mediante premios y castigos.',
+    hint: 'Este paradigma se enfoca en recompensas y castigos para moldear la conducta.' },
+  { id: 'c2', text: 'Conductas observables y medibles', paradigm: 'conductivista',
+    explain: 'Solo interesa lo que puede verse y medirse objetivamente.',
+    hint: 'Aquí solo importa lo que se puede observar externamente.' },
+  { id: 'c3', text: 'Instrucción programada paso a paso', paradigm: 'conductivista',
+    explain: 'El aprendizaje se divide en pequeños pasos con retroalimentación inmediata.',
+    hint: 'Se diseña una secuencia rígida de estímulos y respuestas.' },
+  { id: 'c4', text: 'Objetivos conductuales redactados en términos de desempeño', paradigm: 'conductivista',
+    explain: 'Los objetivos se expresan como conductas específicas y observables (Mager).',
+    hint: 'Se redacta "el alumno será capaz de..." con verbos observables.' },
+  { id: 'c5', text: 'Relación estímulo-respuesta', paradigm: 'conductivista',
+    explain: 'El aprendizaje se concibe como asociación entre estímulos y respuestas.',
+    hint: 'Piensa en Pavlov y Skinner: condicionamiento clásico y operante.' },
+
+  // COGNITIVISTA (5)
+  { id: 'co1', text: 'Procesamiento de la información en la mente', paradigm: 'cognitivista',
+    explain: 'Se estudia cómo la mente recibe, almacena y recupera información.',
+    hint: 'Este paradigma compara la mente con una computadora que procesa datos.' },
+  { id: 'co2', text: 'Formación de esquemas mentales', paradigm: 'cognitivista',
+    explain: 'El conocimiento se organiza en estructuras cognitivas llamadas esquemas.',
+    hint: 'Piensa en cómo organizamos el conocimiento en estructuras internas.' },
+  { id: 'co3', text: 'La metacognición como clave del aprendizaje', paradigm: 'cognitivista',
+    explain: 'Aprender a pensar sobre el propio pensamiento es fundamental.',
+    hint: 'Se refiere a "pensar sobre cómo pensamos".' },
+  { id: 'co4', text: 'Organizadores previos para facilitar el aprendizaje', paradigm: 'cognitivista',
+    explain: 'Ausubel propone materiales introductorios que anclen la nueva información.',
+    hint: 'Son puentes cognitivos que prepara el docente antes del contenido nuevo.' },
+  { id: 'co5', text: 'Estudio de la memoria y el olvido', paradigm: 'cognitivista',
+    explain: 'Se analizan los procesos internos de almacenamiento y recuperación.',
+    hint: 'Este enfoque investiga qué ocurre dentro de la mente al aprender.' },
+
+  // CONSTRUCTIVISTA (5)
+  { id: 'cs1', text: 'El alumno construye su propio conocimiento', paradigm: 'constructivista',
+    explain: 'El estudiante es protagonista activo que construye significados.',
+    hint: 'Aquí el conocimiento no se transmite, se construye.' },
+  { id: 'cs2', text: 'Aprendizaje significativo a partir de saberes previos', paradigm: 'constructivista',
+    explain: 'Lo nuevo se conecta con lo que el alumno ya sabe (Ausubel).',
+    hint: 'Se basa en relacionar lo nuevo con lo que ya se conoce.' },
+  { id: 'cs3', text: 'El error es oportunidad de aprendizaje', paradigm: 'constructivista',
+    explain: 'Los errores revelan cómo piensa el alumno y guían la enseñanza.',
+    hint: 'En este paradigma equivocarse no es malo, es parte del proceso.' },
+  { id: 'cs4', text: 'Zona de Desarrollo Próximo andamiada', paradigm: 'constructivista',
+    explain: 'Vygotsky propone que el aprendizaje ocurre con ayuda de un par más capaz.',
+    hint: 'Se refiere a lo que el alumno puede hacer con ayuda de otros.' },
+  { id: 'cs5', text: 'Aprendizaje colaborativo y social', paradigm: 'constructivista',
+    explain: 'El conocimiento se construye en interacción con otros.',
+    hint: 'El aprendizaje es un proceso social, no individual.' },
+
+  // HUMANISTA (5)
+  { id: 'h1', text: 'Desarrollo integral y autorrealización del estudiante', paradigm: 'humanista',
+    explain: 'Se busca que el estudiante desarrolle todas sus potencialidades (Maslow, Rogers).',
+    hint: 'Este paradigma pone a la persona y sus emociones en el centro.' },
+  { id: 'h2', text: 'Relación empática y de confianza docente-alumno', paradigm: 'humanista',
+    explain: 'El vínculo afectivo es condición para que haya aprendizaje.',
+    hint: 'Aquí lo afectivo y emocional son tan importantes como lo cognitivo.' },
+  { id: 'h3', text: 'Libertad y respeto a los ritmos individuales', paradigm: 'humanista',
+    explain: 'Cada persona aprende a su manera y a su tiempo.',
+    hint: 'Se respeta la autonomía y singularidad de cada estudiante.' },
+  { id: 'h4', text: 'Educación centrada en la persona', paradigm: 'humanista',
+    explain: 'Rogers propone que el alumno es el centro del proceso educativo.',
+    hint: 'El foco no es el contenido ni el maestro, sino el estudiante como persona.' },
+  { id: 'h5', text: 'Importancia de emociones, valores y actitudes', paradigm: 'humanista',
+    explain: 'Se educa al ser humano integral, no solo al intelecto.',
+    hint: 'Lo afectivo, ético y actitudinal es tan importante como lo cognitivo.' },
+
+  // NUEVA ESCUELA MEXICANA (5)
+  { id: 'n1', text: 'Aprendizaje situado y vinculado a la comunidad', paradigm: 'nuemex',
+    explain: 'Se aprende desde y para la realidad comunitaria del estudiante.',
+    hint: 'Este enfoque conecta la escuela con el contexto local y comunitario.' },
+  { id: 'n2', text: 'Ejes articuladores e interdisciplinariedad', paradigm: 'nuemex',
+    explain: 'Integra pensamiento crítico, vida saludable, artes, etc., en todas las áreas.',
+    hint: 'Es un modelo educativo mexicano reciente que articula varios ejes transversales.' },
+  { id: 'n3', text: 'Educación inclusiva, laica y gratuita', paradigm: 'nuemex',
+    explain: 'Garantiza el derecho a la educación sin discriminación.',
+    hint: 'Es un paradigma oficial mexicano actual con enfoque social y humanístico.' },
+  { id: 'n4', text: 'Metodologías socioformativas (ABP, servicio, aula invertida)', paradigm: 'nuemex',
+    explain: 'Se privilegia el aprendizaje por proyectos y problemáticas reales.',
+    hint: 'Usa metodologías activas para resolver problemas del contexto.' },
+  { id: 'n5', text: 'Evaluación formativa con enfoque dialógico', paradigm: 'nuemex',
+    explain: 'La evaluación es un proceso continuo de reflexión y mejora.',
+    hint: 'No se evalúa solo con exámenes, sino mediante diálogos y portafolios.' }
+];
+
+// Lecturas sugeridas por paradigma
+const readings = {
+  tradicional: [
+    { title: 'Comenio, J. A. (1657). Didáctica Magna.', desc: 'Obra fundacional de la enseñanza sistemática y graduada.' },
+    { title: 'Herbart, J. F. (1806). Pedagogía General.', desc: 'Sistematiza la instrucción formal por pasos.' }
+  ],
+  conductivista: [
+    { title: 'Skinner, B. F. (1953). Ciencia y conducta humana.', desc: 'Fundamentos del condicionamiento operante.' },
+    { title: 'Pavlov, I. (1927). Condicionamiento clásico.', desc: 'Estudio pionero de los reflejos condicionados.' }
+  ],
+  cognitivista: [
+    { title: 'Ausubel, D. (1968). Psicología educativa: un punto de vista cognoscitivo.', desc: 'Teoría del aprendizaje significativo.' },
+    { title: 'Bruner, J. (1960). El proceso de la educación.', desc: 'Aprendizaje por descubrimiento y estructura del conocimiento.' }
+  ],
+  constructivista: [
+    { title: 'Vygotsky, L. (1934). Pensamiento y lenguaje.', desc: 'Teoría sociocultural y Zona de Desarrollo Próximo.' },
+    { title: 'Piaget, J. (1936). El nacimiento de la inteligencia.', desc: 'Etapas del desarrollo cognitivo infantil.' }
+  ],
+  humanista: [
+    { title: 'Rogers, C. (1969). Libertad y creatividad en la educación.', desc: 'Educación centrada en el alumno.' },
+    { title: 'Maslow, A. (1954). Motivación y personalidad.', desc: 'Jerarquía de necesidades y autorrealización.' }
+  ],
+  nuemex: [
+    { title: 'SEP (2022). Plan de Estudios para la Educación Básica.', desc: 'Documento oficial de la Nueva Escuela Mexicana.' },
+    { title: 'SEP (2022). Los contenidos articuladores de la NEM.', desc: 'Ejes articuladores y campos formativos.' }
+  ]
+};
+
+let correctCount = 0;
+let wrongCount = 0;
+let placedCount = 0;
+const totalElements = elements.length;
+const placedElements = new Set();
+const wrongParadigms = new Set(); // paradigmas donde el estudiante se equivocó
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function renderBank() {
+  const bank = document.getElementById('bank');
+  bank.innerHTML = '<div class="bank-title">📦 Banco de características (desordenadas) — arrastra cada una a su paradigma</div>';
+  shuffle(elements).forEach(el => {
+    const div = document.createElement('div');
+    div.className = 'element';
+    div.textContent = el.text;
+    div.draggable = true;
+    div.dataset.id = el.id;
+    div.dataset.paradigm = el.paradigm;
+    div.addEventListener('dragstart', onDragStart);
+    div.addEventListener('dragend', onDragEnd);
+    bank.appendChild(div);
+  });
+}
+
+function onDragStart(e) {
+  e.dataTransfer.setData('text/plain', e.target.dataset.id);
+  e.target.classList.add('dragging');
+}
+function onDragEnd(e) {
+  e.target.classList.remove('dragging');
+}
+
+function setupDropZones() {
+  document.querySelectorAll('.drop-zone').forEach(zone => {
+    zone.addEventListener('dragover', e => {
+      e.preventDefault();
+      zone.classList.add('drag-over');
+    });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      const id = e.dataTransfer.getData('text/plain');
+      handleDrop(id, zone.dataset.paradigm);
+    });
+  });
+}
+
+function handleDrop(id, paradigm) {
+  if (placedElements.has(id)) return;
+  const el = elements.find(x => x.id === id);
+  if (!el) return;
+
+  if (el.paradigm === paradigm) {
+    correctCount++;
+    placedCount++;
+    placedElements.add(id);
+    const bankEl = document.querySelector(`.element[data-id="${id}"]`);
+    if (bankEl) bankEl.remove();
+    const zone = document.querySelector(`.drop-zone[data-paradigm="${paradigm}"]`);
+    const item = document.createElement('div');
+    item.className = 'placed-item';
+    item.textContent = el.text;
+    zone.appendChild(item);
+    showFeedback(true, '¡Correcto! 🎉', el.explain);
+  } else {
+    wrongCount++;
+    wrongParadigms.add(el.paradigm); // registró el paradigma correcto del elemento
+    showFeedback(false, 'No es correcto… 🤔', el.hint);
+  }
+  updateStats();
+  if (placedCount === totalElements) {
+    setTimeout(showFinal, 1500);
+  }
+}
+
+function updateStats() {
+  document.getElementById('correctCount').textContent = correctCount;
+  document.getElementById('wrongCount').textContent = wrongCount;
+  document.getElementById('progress').textContent = placedCount;
+}
+
+function showFeedback(success, title, text) {
+  const fb = document.getElementById('feedback');
+  document.getElementById('feedbackTitle').textContent = title;
+  document.getElementById('feedbackText').textContent = text;
+  fb.classList.remove('success', 'error');
+  fb.classList.add(success ? 'success' : 'error');
+  fb.classList.add('show');
+}
+function closeFeedback() {
+  document.getElementById('feedback').classList.remove('show');
+}
+
+function showFinal() {
+  const panel = document.getElementById('finalPanel');
+  const percent = totalElements === 0 ? 0 : Math.round((correctCount / totalElements) * 100);
+  document.getElementById('scoreValue').textContent = percent + '%';
+  document.getElementById('scoreCircle').style.setProperty('--p', percent + '%');
+
+  let msg = '';
+  if (percent === 100) {
+    msg = '🌟 ¡Excelente! Dominas los paradigmas de la docencia. Puedes explicar con claridad las características de cada enfoque.';
+  } else if (percent >= 75) {
+    msg = '👏 ¡Muy bien! Tienes un buen manejo de los paradigmas. Revisa los que te costaron más para consolidar tu aprendizaje.';
+  } else if (percent >= 50) {
+    msg = '📚 Buen esfuerzo. Te recomiendo repasar las diferencias entre los paradigmas, sobre todo entre el conductismo, cognitivismo y constructivismo.';
+  } else {
+    msg = '💪 ¡No te rindas! Los paradigmas educativos son complejos. Te sugiero volver a leer los materiales y reintentar la actividad.';
+  }
+  document.getElementById('finalMessage').innerHTML =
+    `<strong>Aciertos:</strong> ${correctCount} &nbsp;|&nbsp; <strong>Errores:</strong> ${wrongCount}<br><br>${msg}`;
+
+  // Sugerencias de lectura
+  const readingsBox = document.getElementById('readingsBox');
+  readingsBox.innerHTML = '';
+  if (wrongParadigms.size > 0) {
+    const div = document.createElement('div');
+    div.className = 'readings';
+    let html = `<h3>📖 Lecturas sugeridas para reforzar</h3><p style="font-size:0.9em; color:#475569; margin-bottom:10px;">Te equivocaste en algunos paradigmas. Consulta estas fuentes para profundizar:</p><ul>`;
+    wrongParadigms.forEach(p => {
+      const name = {
+        tradicional: 'Tradicional',
+        conductivista: 'Conductivista',
+        cognitivista: 'Cognitivista',
+        constructivista: 'Constructivista',
+        humanista: 'Humanista',
+        nuemex: 'Nueva Escuela Mexicana'
+      }[p];
+      html += `<li><strong>Paradigma ${name}:</strong><ul style="margin-top:5px; padding-left:15px;">`;
+      (readings[p] || []).forEach(r => {
+        html += `<li style="background:transparent; border:none; padding:3px 0;">${r.title}<br><em style="color:#64748b; font-size:0.85em;">${r.desc}</em></li>`;
+      });
+      html += `</ul></li>`;
+    });
+    html += `</ul>`;
+    div.innerHTML = html;
+    readingsBox.appendChild(div);
+  } else if (placedCount === totalElements) {
+    const div = document.createElement('div');
+    div.className = 'readings';
+    div.innerHTML = `<h3>📖 Para seguir profundizando</h3>
+      <ul>
+        <li><strong>Díaz Barriga, F. &amp; Hernández, G. (2006).</strong> Estrategias docentes para un aprendizaje significativo.</li>
+        <li><strong>Coll, C. (1990).</strong> Aprendizaje escolar y construcción del conocimiento.</li>
+      </ul>`;
+    readingsBox.appendChild(div);
+  }
+
+  panel.classList.add('show');
+}
+function closeFinal() {
+  document.getElementById('finalPanel').classList.remove('show');
+}
+
+function resetGame() {
+  correctCount = 0;
+  wrongCount = 0;
+  placedCount = 0;
+  placedElements.clear();
+  wrongParadigms.clear();
+  document.querySelectorAll('.drop-zone').forEach(z => z.innerHTML = '');
+  updateStats();
+  renderBank();
+}
+
+renderBank();
+setupDropZones();
+updateStats();
+</script>
+</body>
+</html>
